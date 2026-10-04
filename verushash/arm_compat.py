@@ -47,3 +47,9 @@ replace('haraka.h', '#include "immintrin.h"', NEON_OR_X86)
 replace('haraka_portable.h', '#include "immintrin.h"', NEON_OR_X86)
 replace('verus_clhash.h', '#include <cpuid.h>\n#include <x86intrin.h>', CLHASH)
 replace('haraka.c', '#include "haraka.h"', HARAKA_C)
+# The module's ARM-accelerated path produces wrong VerusHash 2.x results (caught by tests/selftest.py),
+# so always take the portable path on ARM. It also keeps the module safe on CPUs without the
+# crypto extensions, such as the Raspberry Pi 4.
+replace('verus_clhash.h',
+        'if((hwcaps & HWCAP_AES) && (hwcaps & HWCAP_PMULL))\n        __cpuverusoptimized = true;',
+        'if((hwcaps & HWCAP_AES) && (hwcaps & HWCAP_PMULL))\n        __cpuverusoptimized = false;')
