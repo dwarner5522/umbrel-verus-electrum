@@ -29,7 +29,7 @@ HARAKA_C = '''#if defined(__arm__) || defined(__aarch64__)
 #include "crypto/SSE2NEON.h"
 __m128i _mm_aesenc_si128(__m128i a, __m128i RoundKey)
 {
-    return vaesmcq_u8(vaeseq_u8(a, (uint8x16_t){})) ^ RoundKey;
+    return vreinterpretq_s32_u8(veorq_u8(vaesmcq_u8(vaeseq_u8(vreinterpretq_u8_s32(a), vdupq_n_u8(0))), vreinterpretq_u8_s32(RoundKey)));
 }
 #endif
 #include "haraka.h"'''
