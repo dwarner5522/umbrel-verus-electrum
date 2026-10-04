@@ -6,7 +6,7 @@
 FROM python:3.8-slim-bookworm AS build
 
 RUN apt-get update \
-	&& apt-get install -y --no-install-recommends build-essential ca-certificates curl git libleveldb-dev libsodium-dev \
+	&& apt-get install -y --no-install-recommends build-essential ca-certificates curl git libboost-dev libleveldb-dev libsodium-dev \
 	&& rm -rf /var/lib/apt/lists/*
 
 RUN python -m venv /venv
