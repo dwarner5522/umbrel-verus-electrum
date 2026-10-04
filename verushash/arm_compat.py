@@ -1,8 +1,8 @@
 '''Make VerusCoin/verushashpy compile on arm64.
 
 Its sources already contain ARM code paths written against the SSE2NEON.h that the Verus daemon
-shipped at the time, but three headers still include x86-only headers unconditionally and the
-SSE2NEON.h file itself is missing from the repository. x86 builds are unaffected.
+shipped at the time, but three headers still include x86-only headers unconditionally, haraka.c lacks the
+daemon's ARM AES round, and the SSE2NEON.h file itself is missing from the repository. x86 builds are unaffected.
 '''
 import pathlib
 import sys
@@ -24,6 +24,16 @@ CLHASH = '''#if defined(__arm__) || defined(__aarch64__)
 #include <x86intrin.h>
 #endif'''
 
+# The AES round the non-portable Haraka code needs, as the Verus daemon defined it for ARM.
+HARAKA_C = '''#if defined(__arm__) || defined(__aarch64__)
+#include "crypto/SSE2NEON.h"
+__m128i _mm_aesenc_si128(__m128i a, __m128i RoundKey)
+{
+    return vaesmcq_u8(vaeseq_u8(a, (uint8x16_t){})) ^ RoundKey;
+}
+#endif
+#include "haraka.h"'''
+
 
 def replace(name, old, new):
     path = src / name
@@ -36,3 +46,4 @@ def replace(name, old, new):
 replace('haraka.h', '#include "immintrin.h"', NEON_OR_X86)
 replace('haraka_portable.h', '#include "immintrin.h"', NEON_OR_X86)
 replace('verus_clhash.h', '#include <cpuid.h>\n#include <x86intrin.h>', CLHASH)
+replace('haraka.c', '#include "haraka.h"', HARAKA_C)
