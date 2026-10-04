@@ -1,0 +1,13 @@
+diff --git a/electrumx/lib/verus_hash.py b/electrumx/lib/verus_hash.py
+index f381df9..f11acb4 100644
+--- a/electrumx/lib/verus_hash.py
++++ b/electrumx/lib/verus_hash.py
+@@ -52,7 +52,7 @@ def verus_hash2_1(msg):
+ 
+ # verus_hash 2b2
+ def verus_hash2_2(msg):
+-    return vh.verushash_v2b1(msg)
++    return vh.verushash_v2b2(msg)
+ 
+ def main():
+     s = "Test1234"

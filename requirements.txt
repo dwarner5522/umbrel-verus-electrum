@@ -1,0 +1,9 @@
+# Runtime dependencies of VerusCoin/electrumx (ElectrumX 1.8.6), pinned to the versions tested.
+# uvloop is deliberately left out: current releases no longer work with this ElectrumX version.
+# verushash is NOT installed from PyPI (that name belongs to an unrelated package there);
+# it is built from VerusCoin/verushashpy in the Dockerfile.
+aiorpcX==0.7.3
+aiohttp==3.10.11
+attrs==25.3.0
+plyvel==1.5.1
+pylru==1.3.1
