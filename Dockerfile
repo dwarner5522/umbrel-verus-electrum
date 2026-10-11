@@ -32,14 +32,15 @@ RUN set -eux; \
 COPY requirements.txt /build/requirements.txt
 RUN pip install --no-cache-dir -r /build/requirements.txt
 
-# VerusCoin's ElectrumX fork, plus the fix that makes it hash current (VerusHash 2.2 / PBaaS) headers correctly
+# VerusCoin's ElectrumX fork, plus two fixes: hash current (VerusHash 2.2 / PBaaS) headers correctly,
+# and build the header merkle cache in batches instead of loading every header into memory at once
 ARG ELECTRUMX_COMMIT=2281692cb25554429ac8014e7801ef207810b03a
 COPY patches /build/patches
 RUN set -eux; \
 	git clone https://github.com/VerusCoin/electrumx /opt/electrumx; \
 	cd /opt/electrumx; \
 	git checkout --detach "${ELECTRUMX_COMMIT}"; \
-	git apply /build/patches/verus-hash-v2b2.patch; \
+	git apply /build/patches/verus-hash-v2b2.patch /build/patches/batched-header-hashes.patch; \
 	rm -rf .git tests docs contrib
 
 COPY tests /build/tests

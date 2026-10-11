@@ -1,0 +1,50 @@
+diff --git a/electrumx/server/db.py b/electrumx/server/db.py
+index 2b4643e..ba7f587 100644
+--- a/electrumx/server/db.py
++++ b/electrumx/server/db.py
+@@ -53,6 +53,7 @@ class DB(object):
+     '''
+ 
+     DB_VERSIONS = [6]
++    HEADER_HASH_BATCH = 20000
+ 
+     class DBError(Exception):
+         '''Raised on general DB errors generally indicating corruption.'''
+@@ -413,18 +414,25 @@ class DB(object):
+         return tx_hash, tx_height
+ 
+     async def fs_block_hashes(self, height, count):
+-        headers_concat, headers_count = await self.read_headers(height, count)
+-        if headers_count != count:
+-            raise self.DBError('only got {:,d} headers starting at {:,d}, not '
+-                               '{:,d}'.format(headers_count, height, count))
+-        offset = 0
+-        headers = []
+-        for n in range(count):
+-            hlen = self.header_len(height + n)
+-            headers.append(headers_concat[offset:offset + hlen])
+-            offset += hlen
+-
+-        return [self.coin.header_hash(header) for header in headers]
++        # Verus headers are about 1.5 KB each and the header merkle cache asks
++        # for every header on the chain at once.  Read and hash them in
++        # batches so that takes megabytes of memory instead of gigabytes.
++        hashes = []
++        while count > 0:
++            batch = min(count, self.HEADER_HASH_BATCH)
++            headers_concat, headers_count = await self.read_headers(height, batch)
++            if headers_count != batch:
++                raise self.DBError('only got {:,d} headers starting at {:,d}, not '
++                                   '{:,d}'.format(headers_count, height, batch))
++            offset = 0
++            for n in range(batch):
++                hlen = self.header_len(height + n)
++                hashes.append(self.coin.header_hash(headers_concat[offset:offset + hlen]))
++                offset += hlen
++            height += batch
++            count -= batch
++
++        return hashes
+ 
+     async def limited_history(self, hashX, *, limit=1000):
+         '''Return an unpruned, sorted list of (tx_hash, height) tuples of
